@@ -1,0 +1,282 @@
+{
+  "info": {
+    "name": "NGO Donation and Community Projects",
+    "description": "Demonstration flow for the NGO management API. Run the requests in order. Login stores the access token; later requests store ids.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://127.0.0.1:8000"},
+    {"key": "access_token", "value": ""},
+    {"key": "admin_id", "value": ""},
+    {"key": "donor_id", "value": ""},
+    {"key": "campaign_id", "value": ""},
+    {"key": "donation_id", "value": ""},
+    {"key": "receipt_id", "value": ""},
+    {"key": "volunteer_id", "value": ""},
+    {"key": "project_id", "value": ""},
+    {"key": "assignment_id", "value": ""},
+    {"key": "milestone_id", "value": ""},
+    {"key": "expense_id", "value": ""},
+    {"key": "resource_id", "value": ""},
+    {"key": "beneficiary_id", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["const body = pm.response.json();", "pm.collectionVariables.set('access_token', body.access_token);", "pm.collectionVariables.set('admin_id', body.user.id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"admin@ngo.local\",\n  \"password\": \"Admin@12345\"\n}"},
+            "url": "{{base_url}}/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Current user",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+            "url": "{{base_url}}/api/v1/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fundraising",
+      "item": [
+        {
+          "name": "Create donor",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('donor_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"donor_type\": \"organization\",\n  \"name\": \"Meera Shah\",\n  \"organization_name\": \"Shah Trust\",\n  \"email\": \"trust@example.com\",\n  \"city\": \"Patna\"\n}"},
+            "url": "{{base_url}}/api/v1/donors"
+          }
+        },
+        {
+          "name": "Create campaign",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('campaign_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"title\": \"Monsoon relief\",\n  \"description\": \"Dry rations for flooded wards\",\n  \"goal_amount\": \"20000.00\",\n  \"budget_amount\": \"5000.00\",\n  \"start_date\": \"2026-11-03\",\n  \"end_date\": \"2026-12-31\",\n  \"category\": \"disaster_relief\",\n  \"manager_id\": {{admin_id}}\n}"},
+            "url": "{{base_url}}/api/v1/campaigns"
+          }
+        },
+        {
+          "name": "Activate campaign",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"active\"\n}"},
+            "url": "{{base_url}}/api/v1/campaigns/{{campaign_id}}/status"
+          }
+        },
+        {
+          "name": "Record donation",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('donation_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"donor_id\": {{donor_id}},\n  \"campaign_id\": {{campaign_id}},\n  \"amount\": \"1500.00\",\n  \"donation_date\": \"2026-11-03\",\n  \"method\": \"bank_transfer\",\n  \"reference_number\": \"NEFT-77881\"\n}"},
+            "url": "{{base_url}}/api/v1/donations"
+          }
+        },
+        {
+          "name": "Confirm donation",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"confirmed\"\n}"},
+            "url": "{{base_url}}/api/v1/donations/{{donation_id}}/status"
+          }
+        },
+        {
+          "name": "Issue receipt",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('receipt_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+            "url": "{{base_url}}/api/v1/donations/{{donation_id}}/receipt"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects and volunteers",
+      "item": [
+        {
+          "name": "Register volunteer",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('volunteer_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"full_name\": \"Anil Das\",\n  \"email\": \"anil@example.com\",\n  \"skills\": [\"logistics\"],\n  \"availability\": \"Weekdays\",\n  \"status\": \"active\",\n  \"emergency_contact_name\": \"Sita Das\",\n  \"emergency_contact_phone\": \"9822222222\"\n}"},
+            "url": "{{base_url}}/api/v1/volunteers"
+          }
+        },
+        {
+          "name": "Create project",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('project_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"title\": \"Ward 12 relief\",\n  \"objectives\": \"Distribute rations\",\n  \"location\": \"Ward 12, Patna\",\n  \"start_date\": \"2026-11-03\",\n  \"end_date\": \"2026-12-31\",\n  \"budget_amount\": \"8000.00\",\n  \"manager_id\": {{admin_id}}\n}"},
+            "url": "{{base_url}}/api/v1/projects"
+          }
+        },
+        {
+          "name": "Submit project",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"comments\": \"Please approve\"\n}"},
+            "url": "{{base_url}}/api/v1/projects/{{project_id}}/submit"
+          }
+        },
+        {
+          "name": "Approve project",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"decision\": \"approved\",\n  \"comments\": \"Approved for relief\"\n}"},
+            "url": "{{base_url}}/api/v1/projects/{{project_id}}/decision"
+          }
+        },
+        {
+          "name": "Activate project",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"active\"\n}"},
+            "url": "{{base_url}}/api/v1/projects/{{project_id}}/status"
+          }
+        },
+        {
+          "name": "Assign volunteer",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('assignment_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"volunteer_id\": {{volunteer_id}},\n  \"project_id\": {{project_id}},\n  \"responsibility\": \"Distribution lead\",\n  \"start_date\": \"2026-11-03\",\n  \"end_date\": \"2026-12-31\"\n}"},
+            "url": "{{base_url}}/api/v1/assignments"
+          }
+        },
+        {
+          "name": "Create milestone",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('milestone_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"title\": \"First distribution\",\n  \"due_date\": \"2026-12-15\"\n}"},
+            "url": "{{base_url}}/api/v1/projects/{{project_id}}/milestones"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Money, stock, impact",
+      "item": [
+        {
+          "name": "Record expense",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('expense_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"project_id\": {{project_id}},\n  \"category\": \"food\",\n  \"amount\": \"900.00\",\n  \"expense_date\": \"2026-11-03\",\n  \"description\": \"Ration purchase\",\n  \"receipt_reference\": \"INV-19\"\n}"},
+            "url": "{{base_url}}/api/v1/expenses"
+          }
+        },
+        {
+          "name": "Approve expense",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"approved\",\n  \"comments\": \"Checked\"\n}"},
+            "url": "{{base_url}}/api/v1/expenses/{{expense_id}}/decision"
+          }
+        },
+        {
+          "name": "Register resource",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('resource_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Family kit\",\n  \"category\": \"emergency_kits\",\n  \"unit\": \"kit\",\n  \"quantity_on_hand\": 20,\n  \"reorder_level\": 5\n}"},
+            "url": "{{base_url}}/api/v1/resources"
+          }
+        },
+        {
+          "name": "Allocate resource",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"movement_type\": \"allocation\",\n  \"quantity\": 4,\n  \"project_id\": {{project_id}}\n}"},
+            "url": "{{base_url}}/api/v1/resources/{{resource_id}}/movements"
+          }
+        },
+        {
+          "name": "Register beneficiary",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.collectionVariables.set('beneficiary_id', pm.response.json().id);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"full_name\": \"Family 18\",\n  \"category\": \"family\",\n  \"contact\": \"9800000000\",\n  \"address\": \"Ward 12\",\n  \"project_ids\": [{{project_id}}]\n}"},
+            "url": "{{base_url}}/api/v1/beneficiaries"
+          }
+        },
+        {
+          "name": "Record assistance",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"project_id\": {{project_id}},\n  \"assistance_type\": \"ration\",\n  \"description\": \"One family kit\",\n  \"quantity\": 1,\n  \"distribution_date\": \"2026-11-03\",\n  \"resource_id\": {{resource_id}}\n}"},
+            "url": "{{base_url}}/api/v1/beneficiaries/{{beneficiary_id}}/assistance"
+          }
+        },
+        {
+          "name": "Update impact",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"beneficiaries_served\": 1,\n  \"volunteer_hours\": \"6\",\n  \"resources_distributed\": 1,\n  \"funds_utilized\": \"900\",\n  \"milestones_achieved\": 0,\n  \"narrative\": \"First kits reached Ward 12.\"\n}"},
+            "url": "{{base_url}}/api/v1/projects/{{project_id}}/impact"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard, report, audit",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+            "url": "{{base_url}}/api/v1/dashboard"
+          }
+        },
+        {
+          "name": "Export donations CSV",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+            "url": "{{base_url}}/api/v1/reports/donations?format=csv"
+          }
+        },
+        {
+          "name": "Audit log",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+            "url": "{{base_url}}/api/v1/audit-logs?page_size=50"
+          }
+        }
+      ]
+    }
+  ]
+}
